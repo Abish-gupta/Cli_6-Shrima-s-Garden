@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>aGi x Shrima's | Configuration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: white; -webkit-tap-highlight-color: transparent; }
+        
+        /* Smooth Transitions */
+        .slide-enter-active { animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); scale: 0.98; }
+            to { opacity: 1; transform: translateY(0); scale: 1; }
+        }
+
+        /* Glassmorphism & UI */
+        .glass { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .card-select:checked + div { border-color: #ec7f13; background-color: rgba(236, 127, 19, 0.15); box-shadow: 0 4px 20px rgba(236, 127, 19, 0.2); }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 bg-slate-950 bg-[url('https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?q=80&w=2940&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat fixed inset-0 overflow-hidden">
+    
+    <div class="absolute inset-0 bg-slate-950/90 z-0"></div>
+
+    <div class="relative z-10 w-full max-w-xl flex flex-col h-[95vh] md:h-auto md:min-h-[650px] py-2">
+        
+        <div class="flex flex-col items-center mb-6 shrink-0 relative">
+            <div class="h-16 w-auto mb-2 flex items-center justify-center">
+                 <img src="https://raw.githubusercontent.com/Abish-gupta/agi-assets/main/images/aGi/Light-removebg.png" class="h-full object-contain drop-shadow-lg" alt="aGi Logo">
+            </div>
+            <h1 class="text-2xl font-extrabold text-white tracking-tight text-center">Project Scope</h1>
+        </div>
+
+        <div class="w-full bg-gray-800 h-1.5 rounded-full mb-5 shrink-0 relative overflow-hidden">
+            <div id="progressBar" class="bg-orange-500 h-full w-[5%] transition-all duration-300 rounded-full"></div>
+        </div>
+
+        <div id="questionContainer" class="glass rounded-3xl p-6 shadow-2xl flex-1 flex flex-col relative overflow-hidden">
+            </div>
+
+        <div class="mt-5 flex gap-3 shrink-0 transition-opacity duration-300 pb-2" id="navButtons">
+            <button onclick="prevStep()" class="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 font-semibold py-4 rounded-xl transition active:scale-95 text-sm">
+                Back
+            </button>
+            <button onclick="nextStep()" class="flex-[2] bg-orange-600 hover:bg-orange-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-900/40 transition active:scale-95 flex items-center justify-center gap-2 text-base">
+                Next →
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- YOUR DATA CONFIG ---
+        const questions = [
+            { id: 'intro', type: 'intro', title: "Hello Tejas! 👋", text: "Let's set up the <b>Shrima's Garden App</b>.<br><br>We need to finalize the features so we can configure the database correctly.<br><br><b>Note:</b> You can skip any question if you are unsure.", btnText: "Start Setup 🚀" },
+            { id: 'emails', type: 'text', title: "📧 Official Emails", desc: "Enter email IDs for daily reports (comma separated).", placeholder: "tejas@gmail.com, manager@shrimas.com...", note: true },
+            { id: 'admin_roles', type: 'counter_list', title: "👥 Staff Access", desc: "How many accounts do you need for each role?", options: [ { id: 'owner', label: 'Owner', desc: 'Full access to Sales, Analytics, Menu.' }, { id: 'manager', label: 'Manager', desc: 'Can manage Inventory, Staff, and Voids.' }, { id: 'chef', label: 'Chef/Kitchen', desc: 'Kitchen Display System (KOT) view.' }, { id: 'waiter', label: 'Waiter', desc: 'Order taking & Bill printing only.' }, { id: 'accountant', label: 'Accountant', desc: 'Read-only access to Sales Reports.' } ], note: true },
+            { id: 'payment_flow', type: 'choice', title: "💸 Payment Flow", desc: "How should customers pay?", options: [ { val: 'Prepaid', icon: '⚡', label: 'Prepaid', sub: 'Pay before eating (Fastest).' }, { val: 'Postpaid', icon: '🍽️', label: 'Postpaid', sub: 'Pay after eating (Higher AOV).' }, { val: 'Hybrid', icon: '🔄', label: 'Hybrid', sub: 'Both options available.' } ], note: true },
+            { id: 'inventory', type: 'choice', title: "📦 Inventory Depth", desc: "How detailed should stock tracking be?", options: [ { val: 'None', icon: '❌', label: 'No Tracking', sub: 'Just sell food, no stock count.' }, { val: 'Basic', icon: '📉', label: 'Level 1: Basic', sub: 'Track item counts (e.g. 50 Cokes).' }, { val: 'Recipe', icon: '👨‍🔬', label: 'Level 2: Recipe', sub: '1 Burger = -1 Bun, -1 Patty deducted.' } ], note: true },
+            { id: 'gov_support', type: 'choice', title: "⚖️ Compliance Support", desc: "Do you need aGi's help with Gov paperwork?", options: [ { val: 'Yes', icon: '📝', label: 'Yes, Help Me', sub: 'GST Registration, FSSAI, License setup.' }, { val: 'No', icon: '🚫', label: 'No, I have it', sub: 'I will handle compliance myself.' } ], note: true },
+            { id: 'hardware', type: 'choice', title: "📱 Hardware", desc: "What devices will you use?", options: [ { val: 'Need Quote', icon: '🛒', label: 'Need to Buy', sub: 'Please send quote for Tablets/POS.' }, { val: 'Have Android', icon: '🤖', label: 'Have Android', sub: 'Samsung/Lenovo/OnePlus Tabs.' }, { val: 'Have iPad', icon: '🍎', label: 'Have iPads', sub: 'Apple ecosystem.' } ], note: true },
+            { id: 'media', type: 'choice', title: "📸 Menu Images", desc: "How will we get food photos?", options: [ { val: 'Client', icon: '📁', label: 'I have Photos', sub: 'I will provide high-quality images.' }, { val: 'AI Gen', icon: '✨', label: 'Generate with AI', sub: 'aGi creates realistic AI food photos.' }, { val: 'Text Only', icon: '📝', label: 'Text Only', sub: 'No images for now.' } ], note: true },
+            { id: 'resort', type: 'choice', title: "🏨 Resort Mode", desc: "Future Resort Integration?", options: [ { val: 'Standalone', icon: '🏠', label: 'Standalone', sub: 'Cafe bills are separate.' }, { val: 'Room Charge', icon: 'bed', label: 'Room Charge', sub: 'Add bill to Room Number.' } ], note: true },
+            { id: 'finish', type: 'finish', title: "All Recorded! ✅", text: "Thank you, Tejas.<br><br><b>All details have been recorded.</b><br>We will review your requirements and connect with you shortly via email." }
+        ];
+
+        let currentStep = 0;
+        let answers = {};
+        const container = document.getElementById('questionContainer');
+        const progressBar = document.getElementById('progressBar');
+        const navButtons = document.getElementById('navButtons');
+
+        // ✅ YOUR WORKING LINK
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz2JnKAKgWCGIlaCl92MT2j5fAUpQnq8W4rYOjr-XIL_hanL7Yf4d3oVtokzIRnbGmkSA/exec"; 
+
+        function renderStep() {
+            const q = questions[currentStep];
+            progressBar.style.width = `${((currentStep) / (questions.length - 1)) * 100}%`;
+            
+            container.innerHTML = '';
+            
+            let html = `<div class="slide-enter-active flex flex-col h-full overflow-hidden relative">
+                
+                ${(q.type !== 'intro' && q.type !== 'finish') ? 
+                `<button onclick="skipCurrentStep()" class="absolute top-0 right-0 z-10 text-[10px] font-bold text-gray-500 hover:text-white uppercase tracking-wider bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg transition">Skip ⏭</button>` 
+                : ''}
+
+                <div class="mb-4 shrink-0 pr-12"> <h2 class="text-xl font-bold text-white mb-1 leading-tight">${q.title}</h2>
+                    <p class="text-gray-400 text-sm leading-snug">${q.desc || q.text}</p>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto pr-1 pb-2 scroll-smooth space-y-3 custom-scroll">`;
+
+            if (q.type === 'intro') {
+                 navButtons.style.display = 'none';
+                 html += `<div class="mt-auto"><button onclick="nextStep()" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95 text-lg">${q.btnText}</button></div>`;
+            } else if (q.type === 'text') {
+                navButtons.style.display = 'flex';
+                html += `<textarea id="textInput" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:bg-white/10 h-32 text-base transition-all" placeholder="${q.placeholder}"></textarea>`;
+            } else if (q.type === 'choice') {
+                navButtons.style.display = 'flex';
+                q.options.forEach(opt => {
+                    const isSelected = answers[q.id]?.value === opt.val ? 'border-orange-500 bg-orange-500/20' : 'border-white/10 bg-white/5';
+                    html += `<label class="cursor-pointer block relative"><input type="radio" name="${q.id}" value="${opt.val}" class="hidden card-select" onchange="selectOption('${q.id}', '${opt.val}')" ${answers[q.id]?.value === opt.val ? 'checked' : ''}><div class="p-4 rounded-2xl border ${isSelected} transition-all flex items-center gap-4 active:scale-[0.98]"><span class="text-2xl shrink-0 w-10 h-10 bg-black/20 rounded-full flex items-center justify-center">${opt.icon || ''}</span><div><div class="font-bold text-base text-white">${opt.label}</div><div class="text-xs text-gray-400 leading-tight mt-0.5">${opt.sub}</div></div></div></label>`;
+                });
+            } else if (q.type === 'counter_list') {
+                navButtons.style.display = 'flex';
+                if(!answers[q.id]) answers[q.id] = {};
+                q.options.forEach(opt => {
+                    const count = answers[q.id][opt.id] || 0;
+                    const isActive = count > 0 ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/10 bg-white/5';
+                    html += `<div id="card_${opt.id}" class="p-3 rounded-2xl border ${isActive} transition-all flex flex-col gap-2"><div class="flex justify-between items-center"><div><div class="font-bold text-white text-sm">${opt.label}</div><div class="text-[10px] text-gray-400 uppercase tracking-wider">Count: <span id="count_display_${opt.id}">${count}</span></div></div><div class="flex items-center gap-3 bg-black/30 rounded-lg p-1"><button onclick="updateCountDirect('${q.id}', '${opt.id}', -1)" class="w-9 h-9 rounded-md bg-white/10 flex items-center justify-center text-white active:bg-white/20 text-lg">-</button><span id="count_val_${opt.id}" class="w-5 text-center font-mono font-bold text-sm">${count}</span><button onclick="updateCountDirect('${q.id}', '${opt.id}', 1)" class="w-9 h-9 rounded-md bg-orange-600 flex items-center justify-center text-white active:bg-orange-500 text-lg">+</button></div></div><div class="text-[11px] text-gray-400 border-t border-white/5 pt-2 mt-1 leading-relaxed">${opt.desc}</div></div>`;
+                });
+            } else if (q.type === 'finish') {
+                navButtons.style.display = 'none';
+                html += `
+                    <div id="loadingState" class="hidden flex-col items-center justify-center py-10">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+                        <p class="text-gray-400 animate-pulse">Saving to aGi Cloud...</p>
+                    </div>
+                    <div id="successState" class="hidden">
+                        <div class="bg-green-500/10 border border-green-500/50 p-4 rounded-xl flex items-center gap-3 mb-6">
+                            <span class="text-2xl">✅</span>
+                            <div>
+                                <p class="font-bold text-green-400">Successfully Recorded!</p>
+                                <p class="text-xs text-green-200">We have received your configuration.</p>
+                            </div>
+                        </div>
+                        <p class="text-center text-gray-400 text-sm mb-6">You can close this window now.</p>
+                         <button onclick="copyToClipboard()" class="w-full bg-white/10 hover:bg-white/20 text-gray-300 font-bold py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition text-sm">
+                            <span>📋 (Backup) Copy for WhatsApp</span>
+                        </button>
+                    </div>
+                `;
+                // Trigger auto-save when this step loads
+                setTimeout(sendDataToSheet, 500);
+            }
+
+            if (q.note) {
+                html += `<div class="mt-2 pt-3 border-t border-white/10"><input type="text" oninput="saveNote('${q.id}', this.value)" value="${answers[q.id]?.note || ''}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 transition-colors" placeholder="Add a note (optional)..."></div>`;
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+            if(q.type === 'text' && answers[q.id]?.value) document.getElementById('textInput').value = answers[q.id].value;
+        }
+
+        function selectOption(id, val) { if(!answers[id]) answers[id] = {}; answers[id].value = val; renderStep(); }
+        function updateCountDirect(stepId, roleId, delta) {
+            if(!answers[stepId]) answers[stepId] = {};
+            if(!answers[stepId][roleId]) answers[stepId][roleId] = 0;
+            const newVal = answers[stepId][roleId] + delta;
+            if (newVal >= 0) {
+                answers[stepId][roleId] = newVal;
+                const valSpan = document.getElementById(`count_val_${roleId}`);
+                const dispSpan = document.getElementById(`count_display_${roleId}`);
+                const card = document.getElementById(`card_${roleId}`);
+                if(valSpan) valSpan.innerText = newVal;
+                if(dispSpan) dispSpan.innerText = newVal;
+                if(newVal > 0) { card.classList.remove('border-white/10', 'bg-white/5'); card.classList.add('border-orange-500/50', 'bg-orange-500/10'); } 
+                else { card.classList.add('border-white/10', 'bg-white/5'); card.classList.remove('border-orange-500/50', 'bg-orange-500/10'); }
+            }
+        }
+        function saveNote(id, val) { if(!answers[id]) answers[id] = {}; answers[id].note = val; }
+        function skipCurrentStep() { const q = questions[currentStep]; if(!answers[q.id]) answers[q.id] = {}; answers[q.id].value = "Skipped"; answers[q.id].note = "User Skipped"; nextStep(true); }
+
+        function nextStep(force = false) {
+            const q = questions[currentStep];
+            if (!force) {
+                if (q.type === 'text') {
+                    const val = document.getElementById('textInput').value;
+                    if(!val && q.id === 'emails') { alert("Please enter an email (or click Skip)."); return; }
+                    if(!answers[q.id]) answers[q.id] = {};
+                    answers[q.id].value = val;
+                }
+                if (q.type === 'choice' && !answers[q.id]?.value) { alert("Please select an option (or click Skip)."); return; }
+            }
+            if (currentStep < questions.length - 1) { currentStep++; renderStep(); }
+        }
+        function prevStep() { if (currentStep > 0) { currentStep--; renderStep(); } }
+
+        function formatData() {
+            const getVal = (id) => answers[id]?.value || "Skipped";
+            const getNote = (id) => answers[id]?.note ? ` [Note: ${answers[id].note}]` : '';
+            
+            // Format Roles
+            let rolesStr = "";
+            if(answers.admin_roles) {
+                Object.keys(answers.admin_roles).forEach(k => {
+                    if(k !== 'note' && k !== 'value' && answers.admin_roles[k] > 0) rolesStr += `${k}: ${answers.admin_roles[k]}, `;
+                });
+            }
+            
+            return {
+                email: getVal('emails'),
+                roles: (rolesStr || "None") + getNote('admin_roles'),
+                payment: getVal('payment_flow') + getNote('payment_flow'),
+                inventory: getVal('inventory') + getNote('inventory'),
+                gov: getVal('gov_support') + getNote('gov_support'),
+                hardware: getVal('hardware') + getNote('hardware'),
+                media: getVal('media') + getNote('media'),
+                resort: getVal('resort') + getNote('resort')
+            };
+        }
+
+        function sendDataToSheet() {
+            const loading = document.getElementById('loadingState');
+            const success = document.getElementById('successState');
+            loading.style.display = 'flex';
+
+            const payload = formatData();
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                loading.style.display = 'none';
+                success.style.display = 'block';
+            }).catch(e => {
+                loading.style.display = 'none';
+                alert("Error saving: " + e.message);
+            });
+        }
+
+        function generateSummary() { return JSON.stringify(formatData(), null, 2); }
+        function copyToClipboard() { navigator.clipboard.writeText(generateSummary()).then(() => alert("Copied!")); }
+
+        renderStep();
+    </script>
+</body>
+</html>
